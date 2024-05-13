@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezervační systém restaurace</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px pink;
+        }
+        h1 {
+            text-align: center;
+        }
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        .day {
+            padding: 10px;
+            background-color:pink;
+            border: 1px solid #fff;
+            cursor: pointer;
+        }
+        .day:hover {
+            background-color:#fa95a4;
+        }
+        .reservation-form {
+            margin-top: 20px;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid pink;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color:#FFB6C1;
+            color: #fff;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #fa95a4;
+        }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <h1 style ="color:pink;">Online rezervace</h1>
+        <div id="calendar"></div>
+        <div class="reservation-form">
+            <h2 style ="color:pink;">Nová rezervace</h2>
+            <form id="reservationForm">
+                <input type="text" id="time" placeholder="Čas (např. 12:00)">
+                <input type="number" id="guests" placeholder="Počet osob">
+                <input type="submit" value="Rezervovat">
+            </form>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const calendar = document.getElementById("calendar");
+            const reservationForm = document.getElementById("reservationForm");
+   
+           
+            let reservations = JSON.parse(localStorage.getItem("reservations")) || {};
+   
+           
+            for (let i = 1; i <= 31; i++) {
+                const day = document.createElement("div");
+                day.classList.add("day");
+                day.textContent = i;
+                day.dataset.day = i;
+                day.addEventListener("click", function() {
+                    const selectedDay = this.dataset.day;
+                    const time = prompt("Čas rezervace (např. 12:00):");
+                    const guests = prompt("Počet osob:");
+                    if (time && guests) {
+                        if (!reservations[selectedDay]) {
+                            reservations[selectedDay] = [];
+                        }
+                        reservations[selectedDay].push({ time, guests });
+                        localStorage.setItem("reservations", JSON.stringify(reservations));
+                        renderReservations();
+                    }
+                });
+                calendar.appendChild(day);
+            }
+   
+            // Render existing reservations
+            function renderReservations() {
+                calendar.querySelectorAll(".reservation").forEach(reservation => reservation.remove());
+                Object.keys(reservations).forEach(day => {
+                    reservations[day].forEach(reservation => {
+                        const reservationElement = document.createElement("div");
+                        reservationElement.classList.add("reservation");
+                        reservationElement.textContent = `Rezervace: ${reservation.time}, ${reservation.guests} osob`;
+                        calendar.querySelector(`[data-day="${day}"]`).appendChild(reservationElement);
+                    });
+                });
+            }
+            renderReservations();
+   
+           
+            reservationForm.addEventListener("submit", function(event) {
+                event.preventDefault();
+                const time = document.getElementById("time").value;
+                const guests = document.getElementById("guests").value;
+                const selectedDay = document.querySelector(".selected");
+                if (time && guests && selectedDay) {
+                    const day = selectedDay.dataset.day;
+                    if (!reservations[day]) {
+                        reservations[day] = [];
+                    }
+                    reservations[day].push({ time, guests });
+                    localStorage.setItem("reservations", JSON.stringify(reservations));
+                    renderReservations();
+                    reservationForm.reset();
+                } else {
+                    alert("Prosím vyplňte všechna pole a vyberte den v kalendáři.");
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>
